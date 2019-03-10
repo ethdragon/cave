@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "allowJs": false,
+        "allowSyntheticDefaultImports": true,
+        "allowUnusedLabels": false,
+        "allowUnreachableCode": true,
+        "noImplicitReturns": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "alwaysStrict": true,
+        "strict": true,
+        "module": "commonjs",
+        "strictNullChecks": true,
+        "inlineSourceMap": true,
+        "sourceMap": false
+    },
+    "exclude": [
+        "node_modules",
+        ".serverless"
+    ]
+}
