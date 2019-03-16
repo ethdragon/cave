@@ -22,11 +22,7 @@ jobs:
       - npm test
       - npm run lint
     - stage: deploy
-      script: skip
-      deploy:
-        provider: script
-        script:
-        - npm install -g serverless
-        - sls deploy --stage prod --force
-        on:
-          branch: master
+      script:
+      - npm -g install serverless
+      - sls deploy --stage prod --force
+      if: branch = master
