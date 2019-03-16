@@ -1,4 +1,5 @@
 #!/bin/bash
+echo ${TRAVIS_BRANCH}
 if [ "$TRAVIS_BRANCH" != "master" ]
 then
   echo "NOT deploying: Deploying only on master, but this is $TRAVIS_BRANCH."
