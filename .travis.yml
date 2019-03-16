@@ -14,14 +14,19 @@ cache:
   - directories:
     - "$HOME/.npm"
 install:
-  - npm -g install serverless
   - npm ci
-script:
-  - npm test
-  - npm run lint
-after_success:
-  deploy:
-    provider: script
-    script: sls deploy --stage prod --force
-    on:
-      branch: master
+jobs:
+  include:
+    - stage: test
+      script:
+      - npm test
+      - npm run lint
+    - stage: deploy
+      script: skip
+      deploy:
+        provider: script
+        script:
+        - npm install -g serverless
+        - sls deploy --stage prod --force
+        on:
+          branch: master
