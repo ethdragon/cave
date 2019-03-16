@@ -26,7 +26,7 @@ plugins:
 functions:
   tesla:
     handler: handler.getTeslaStatus
-    role: arn:aws:iam::550367002470:role/CaveAutomationLambdaRole # manually created role templating?
+    role: arn:aws:iam::550367002470:role/CaveAutomationLambdaRole # manually created role, templating?
     events:
       - schedule:
           rate: rate(10 minutes)
