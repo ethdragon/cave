@@ -16,7 +16,8 @@
     "webpack": "^4.29.6"
   },
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "lint": "tslint -p ."
   },
   "author": "Yang",
   "license": "ISC"
