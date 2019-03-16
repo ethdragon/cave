@@ -16,12 +16,15 @@ cache:
 install:
   - npm -g install serverless
   - npm ci
-script:
-  - npm test
-  - npm run lint
-after_success:
-  deploy:
-    provider: script
-    script: sls deploy --stage prod --force
-    on:
-      branch: master
+jobs:
+  include:
+    - stage: test
+      sscript:
+      - npm test
+      - npm lint
+    - stage: deploy
+      deploy:
+        provider: script
+        script: sls deploy --stage prod --force
+        on:
+          branch: master
