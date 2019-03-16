@@ -19,4 +19,4 @@ install:
 scripts:
   - npm test
   - npm run lint
-  - ./travis-deploy.sh
+  - bash ./travis-deploy.sh
