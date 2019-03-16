@@ -19,10 +19,11 @@ install:
 jobs:
   include:
     - stage: test
-      sscript:
+      script:
       - npm test
       - npm lint
     - stage: deploy
+      script: skip
       deploy:
         provider: script
         script: sls deploy --stage prod --force
