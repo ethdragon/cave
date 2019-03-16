@@ -5,50 +5,32 @@ custom:
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'us-east-1'}
 
+  # todo: move to environment variable file
+  dev:
+    scheduleEnabled: false
+  prod:
+    scheduleEnabled: true  
+
 provider:
   name: aws
   runtime: nodejs8.10
   stackName: ${self:custom.stage}-${self:service}
   memorySize: 128
   timeout: 6
+  deploymentBucket:
+    name: cave-automation-deployment-bucket # manually created bucket
 
 plugins:
   - serverless-webpack
 
-# you can add statements to the Lambda function's IAM Role here
-#  iamRoleStatements:
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:ListBucket"
-#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:PutObject"
-#      Resource:
-#        Fn::Join:
-#          - ""
-#          - - "arn:aws:s3:::"
-#            - "Ref" : "ServerlessDeploymentBucket"
-#            - "/*"
-
-# you can define service wide environment variables here
-#  environment:
-#    variable1: value1
-
-# you can add packaging information here
-#package:
-#  include:
-#    - include-me.js
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.js
-#    - exclude-me-dir/**
-
 functions:
   tesla:
     handler: handler.getTeslaStatus
+    role: arn:aws:iam::550367002470:role/CaveAutomationLambdaRole # manually created role, templating?
     events:
-      - schedule: rate(10 minutes)
+      - schedule:
+          rate: rate(10 minutes)
+          enabled: ${self:custom.${self:custom.stage}.scheduleEnabled}
 
 resources:
   Resources:
