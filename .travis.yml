@@ -21,7 +21,7 @@ jobs:
     - stage: test
       script:
       - npm test
-      - npm lint
+      - npm run lint
     - stage: deploy
       script: skip
       deploy:
