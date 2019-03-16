@@ -15,18 +15,8 @@ cache:
     - "$HOME/.npm"
 install:
   - npm ci
-jobs:
-  include:
-    - stage: test
-      script:
-      - npm test
-      - npm run lint
-    - stage: deploy
-      script: skip
-      deploy:
-        provider: script
-        script:
-        - npm install -g serverless
-        - sls deploy --stage prod --force
-        on:
-          branch: master
+  - npm -g install serverless
+scripts:
+  - npm test
+  - npm run lint
+  - ./travis-deploy.sh
