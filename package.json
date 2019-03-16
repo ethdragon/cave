@@ -8,7 +8,9 @@
     "@types/jest": "^24.0.11",
     "aws-sdk": "^2.418.0",
     "jest": "^24.3.1",
+    "prettier": "^1.16.4",
     "serverless-webpack": "^5.2.0",
+    "ts-jest": "^24.0.0",
     "ts-loader": "^5.3.3",
     "tslint": "^5.14.0",
     "tslint-immutable": "^5.4.0",
@@ -16,9 +18,18 @@
     "webpack": "^4.29.6"
   },
   "scripts": {
-    "test": "test",
+    "test": "jest",
     "lint": "tslint -p ."
   },
   "author": "Yang",
-  "license": "ISC"
+  "license": "ISC",
+  "jest": {
+    "preset": "ts-jest"
+  },
+  "prettier": {
+    "tabWidth": 4,
+    "printWidth": 120,
+    "singleQuote": true,
+    "trailingComma": "all"
+  }
 }
