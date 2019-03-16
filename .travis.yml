@@ -8,7 +8,7 @@ branches:
 cache:
   - npm
   - directories:
-    - node_modules
+    - "$HOME/.npm"
 install:
   - npm -g install serverless
   - npm ci
