@@ -16,7 +16,7 @@ cache:
 install:
   - npm ci
   - npm -g install serverless
-scripts:
+script:
   - npm test
   - npm run lint
   - bash ./travis-deploy.sh
