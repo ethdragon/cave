@@ -1,0 +1,17 @@
+language: node_js
+node_js: 8
+notifications:
+    email: false
+branches:
+  only:
+    - master
+cache:
+  - npm
+  - directories:
+    - "$HOME/.npm"
+install:
+  - npm -g install serverless
+  - npm ci
+script:
+  - npm test
+  - npm run lint
