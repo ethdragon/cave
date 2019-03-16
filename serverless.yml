@@ -46,7 +46,7 @@ plugins:
 
 functions:
   tesla:
-    handler: handler.hello
+    handler: handler.getTeslaStatus
     events:
       - schedule: rate(10 minutes)
 
