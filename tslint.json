@@ -1,0 +1,46 @@
+{
+    "extends": [
+        "tslint-immutable",
+        "tslint:recommended"
+    ],
+    "defaultSeverity": "warning",
+    "rules": {
+        "align": [true, "parameters", "statements", "members", "elements"],
+        "variable-name": false,
+        "max-classes-per-file": false,
+        "no-var-keyword": true,
+        "no-parameter-reassignment": true,
+        "typedef": false,
+        "ban-types": false,
+        "no-console": [true, "log"],
+        "readonly-keyword": false,
+        "readonly-array": [false],
+        "no-object-mutation": [true, { "ignore-prefix": [
+            "_", "mutable", "Date.now = jest.fn().mockReturnValue", "mock", "Mock", "console.", "logger."
+            ] }],
+        "no-delete": [true, "ignore-local"],
+        "no-method-signature": true,
+        "no-this": true,
+        "no-class": true,
+        "no-mixed-interface": false,
+        "no-let": [true, { "ignore-prefix": [
+            "_", "mutable", "resolve"
+            ] }],
+        "no-expression-statement": [
+            true,
+            {
+                "ignore-prefix": [
+                    "Object.", "throw", "Throw", "validate",
+                    "_", "stateful", "mutabl", "mutate", "truthy", "assign", "void",
+                    "test", "describe(", "it(", "it.", "beforeEach(", "expect", "jest.", "snapshot",
+                    "mock", "Mock", "Date.now = jest.fn().mockReturnValue", "console.", "suite"
+                ]
+            }
+        ],
+        "no-if-statement": false,
+        "interface-name": false,
+        "quotemark": [true, "single", "jsx-double"],
+        "object-literal-sort-keys": false,
+        "arrow-parens": false
+    }
+}
