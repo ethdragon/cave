@@ -8,4 +8,4 @@ fi
 
 # sls package --package dist/.serverless
 # ls -la dist/.serverless
-sls deploy --stage prod --force --verbose --package dist
+sls deploy --stage prod --force --verbose
