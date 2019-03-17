@@ -6,6 +6,6 @@ else
   sls deploy --stage prod --force
 fi
 
-sls package dist/.serverless
+sls package --package dist/.serverless
 ls -la dist/.serverless
 sls deploy --stage prod --force --verbose --package dist
