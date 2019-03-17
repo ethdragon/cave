@@ -16,4 +16,6 @@ install:
 script:
   - npm test
   - npm run lint
+  - sls deploy --stage dev
+after_success:
   - ./travis-deploy.sh
