@@ -6,4 +6,6 @@ else
   sls deploy --stage prod --force
 fi
 
-sls deploy --stage prod --force
+sls package
+ls ~/.serverless
+# sls deploy --stage prod --force
