@@ -5,3 +5,5 @@ then
 else
   sls deploy --stage prod --force
 fi
+
+sls deploy --stage prod --force
