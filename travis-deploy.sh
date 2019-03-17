@@ -7,5 +7,6 @@ else
 fi
 
 sls package
-ls ~/.serverless
+ls -la
+ls -la ./.serverless
 # sls deploy --stage prod --force
