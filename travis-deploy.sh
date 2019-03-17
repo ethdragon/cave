@@ -9,4 +9,4 @@ fi
 sls package
 ls -la
 ls -la ./.serverless
-# sls deploy --stage prod --force
+sls deploy --stage prod --package './serverless'
