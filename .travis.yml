@@ -11,10 +11,9 @@ cache:
   - directories:
     - "$HOME/.npm"
 install:
-  - npm install
-  - npm -g install serverless@1.38.0
+  - npm ci
+  - npm -g install serverless@1.38.0 # bug in 1.39.0
 script:
   - npm test
   - npm run lint
-after_success:
   - ./travis-deploy.sh
