@@ -17,6 +17,7 @@ install:
   - npm install
   - npm -g install serverless
 script:
-  # - npm test
-  # - npm run lint
-  - bash ./travis-deploy.sh
+  - npm test
+  - npm run lint
+after_success:
+  - ./travis-deploy.sh
