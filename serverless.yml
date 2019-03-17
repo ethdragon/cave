@@ -11,6 +11,9 @@ custom:
   prod:
     scheduleEnabled: true  
 
+plugins:
+  - serverless-webpack
+
 provider:
   name: aws
   runtime: nodejs8.10
@@ -19,9 +22,6 @@ provider:
   timeout: 6
   deploymentBucket:
     name: cave-automation-deployment-bucket # manually created bucket
-
-plugins:
-  - serverless-webpack
 
 functions:
   tesla:
