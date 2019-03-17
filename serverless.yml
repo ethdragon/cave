@@ -11,6 +11,9 @@ custom:
   prod:
     scheduleEnabled: true  
 
+plugins:
+  - serverless-webpack
+
 provider:
   name: aws
   runtime: nodejs8.10
@@ -20,16 +23,14 @@ provider:
   deploymentBucket:
     name: cave-automation-deployment-bucket # manually created bucket
 
-plugins:
-  - serverless-webpack
-
 functions:
   tesla:
+    name: ${self:custom.stage}-cave-automation-tesla-status
     handler: handler.getTeslaStatus
     role: arn:aws:iam::550367002470:role/CaveAutomationLambdaRole # manually created role, templating?
     events:
       - schedule:
-          rate: rate(10 minutes)
+          rate: rate(1 day)
           enabled: ${self:custom.${self:custom.stage}.scheduleEnabled}
 
 resources:

@@ -1,11 +1,7 @@
 language: node_js
 node_js: 8
 notifications:  
-  email:  
-    recipients:  
-      - ${EMAIL} 
-    on_success: always  
-    on_failure: always
+  email: false
 branches:
   only:
     - master
@@ -15,8 +11,8 @@ cache:
     - "$HOME/.npm"
 install:
   - npm ci
-  - npm -g install serverless
-scripts:
+  - npm -g install serverless@1.38.0 # bug in 1.39.0
+script:
   - npm test
   - npm run lint
   - ./travis-deploy.sh
