@@ -1,0 +1,72 @@
+import { taskEither, tryCatch } from 'fp-ts/lib/TaskEither';
+import * as t from 'io-ts';
+import fetch from 'node-fetch';
+import { getObjectFromS3AsString } from '../common/s3';
+
+// todo: remove hard coded value
+const getSecrete = async (type: 'authToken' | 'credential') => {
+    return await getObjectFromS3AsString(
+        'cave-automation-secretes',
+        `yang/tesla/${type}.json`,
+    );
+};
+
+const authTokenFromS3Task = tryCatch(
+    () => getSecrete('authToken'),
+    err => err,
+);
+
+const credentialFromS3Task = tryCatch(
+    () => getSecrete('credential'),
+    err => err,
+);
+
+const fetchTask = (url: string, body: string, method: 'GET' | 'POST') => tryCatch(
+    () => fetch(url, {
+        method,
+        body,
+    }),
+    err => err,
+);
+
+const TeslaAuth = t.interface({
+    access_token: t.string,
+    token_type: t.literal('bearer'),
+    expires_in: t.number,
+    refresh_token: t.string,
+    created_at: t.string,
+});
+
+const TeslaCredential = t.interface({
+    email: t.string,
+    password: t.string,
+});
+
+export const getStoredAuthTokenTask = () => {
+    return authTokenFromS3Task
+        .map(x => JSON.parse(x))
+        .chain(x => taskEither.fromEither(TeslaAuth.decode(x)));
+};
+
+export const getStoredCredentialTask = () => {
+    return credentialFromS3Task
+        .map(x => JSON.parse(x))
+        .chain(x => taskEither.fromEither(TeslaCredential.decode(x)));
+};
+
+// TODO: use environment variable for url
+export const getNewAuthTokenTask = () => {
+    const authBaseParams = {
+        grant_type: 'password',
+        client_id: '81527cff06843c8634fdc09e8ac0abefb46ac849f38fe1e431c2ef2106796384',
+        client_secret: 'c7257eb71a564034f9419ee651c7d0e5f7aa6bfbd18bafb5c5c033b093bb2fa3',
+    };
+    return getStoredCredentialTask()
+        .map(cred => ({ ...authBaseParams, ...cred }))
+        .map(authParams => JSON.stringify(authParams))
+        .chain(authParamString => fetchTask(
+            'https://owner-api.teslamotors.com/oauth/token',
+            authParamString,
+            'POST'))
+        .chain(x => taskEither.fromEither(TeslaAuth.decode(x)));
+};
