@@ -7,7 +7,7 @@
         "allowUnreachableCode": true,
         "noImplicitReturns": true,
         "noUnusedLocals": true,
-        "noUnusedParameters": false,
+        "noUnusedParameters": true,
         "alwaysStrict": true,
         "strict": true,
         "module": "commonjs",

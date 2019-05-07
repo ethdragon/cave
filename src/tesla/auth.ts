@@ -1,10 +1,11 @@
+import { Task } from 'fp-ts/lib/Task';
 import { taskEither, tryCatch } from 'fp-ts/lib/TaskEither';
 import * as t from 'io-ts';
 import fetch from 'node-fetch';
-import { getObjectFromS3AsString } from '../common/s3';
+import { getObjectFromS3AsString, putObjectToS3 } from '../common/s3';
 
 // todo: remove hard coded value
-const getSecrete = async (type: 'authToken' | 'credential') => {
+const getSecrete = async (type: 'auth_token' | 'credential') => {
     return await getObjectFromS3AsString(
         'cave-automation-secretes',
         `yang/tesla/${type}.json`,
@@ -12,7 +13,7 @@ const getSecrete = async (type: 'authToken' | 'credential') => {
 };
 
 const authTokenFromS3Task = tryCatch(
-    () => getSecrete('authToken'),
+    () => getSecrete('auth_token'),
     err => err,
 );
 
@@ -34,27 +35,45 @@ const TeslaAuth = t.interface({
     token_type: t.literal('bearer'),
     expires_in: t.number,
     refresh_token: t.string,
-    created_at: t.string,
-});
+    created_at: t.number,
+}, 'TeslaAuthToken');
+type TeslaAuth = typeof TeslaAuth._A;
+
+interface TeslaAuthUnexpired {
+    readonly UnexpiredToken: symbol;
+}
+
+const hasTokenExpired = (token: TeslaAuth) => {
+    const bufferTimeInSeconds = 300;
+    const expiredAtTimestamp = token.created_at + token.expires_in - bufferTimeInSeconds;
+    return Math.floor(Date.now() / 1000) < expiredAtTimestamp;
+};
+
+// validate if token will expire in 5 minutes
+export const TeslaAuthUnexpired = t.brand(
+    TeslaAuth,
+    (n): n is t.Branded<TeslaAuth, TeslaAuthUnexpired> => hasTokenExpired(n),
+    'UnexpiredToken',
+);
 
 const TeslaCredential = t.interface({
     email: t.string,
     password: t.string,
 });
 
-export const getStoredAuthTokenTask = () => {
-    return authTokenFromS3Task
-        .map(x => JSON.parse(x))
-        .chain(x => taskEither.fromEither(TeslaAuth.decode(x)));
-};
-
-export const getStoredCredentialTask = () => {
+const getStoredCredentialTask = () => {
     return credentialFromS3Task
         .map(x => JSON.parse(x))
         .chain(x => taskEither.fromEither(TeslaCredential.decode(x)));
 };
 
-// TODO: use environment variable for url
+export const getStoredAuthTokenTask = () => {
+    return authTokenFromS3Task
+        .map(x => JSON.parse(x))
+        .chain(x => taskEither.fromEither(TeslaAuthUnexpired.decode(x)));
+};
+
+// TODO: use environment variable for url for future integration tests
 export const getNewAuthTokenTask = () => {
     const authBaseParams = {
         grant_type: 'password',
@@ -68,5 +87,13 @@ export const getNewAuthTokenTask = () => {
             'https://owner-api.teslamotors.com/oauth/token',
             authParamString,
             'POST'))
-        .chain(x => taskEither.fromEither(TeslaAuth.decode(x)));
+        .chain(x => taskEither.fromEither(TeslaAuthUnexpired.decode(x)))
+        .chain(x => taskEither.fromTask(new Task(() => { // TODO: this is kind of hacky
+            void putObjectToS3( // unreliable fire and forget
+                'cave-automation-secretes',
+                `yang/tesla/auth_token.json`,
+                JSON.stringify(x),
+            );
+            return Promise.resolve(x);
+        })));
 };
