@@ -11,6 +11,7 @@ jest.mock('node-fetch', () => ({
         }),
 }));
 
+// TODO: need more tests coverage
 describe('fetchTask', () => {
     beforeEach(() => {
         mockJSON.mockReset();
