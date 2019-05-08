@@ -4,13 +4,23 @@ import * as t from 'io-ts';
 import fetch from 'node-fetch';
 import { getObjectFromS3AsString, putObjectToS3 } from '../common/s3';
 
-// todo: remove hard coded value
-const getSecrete = async (type: 'auth_token' | 'credential') => {
-    return await getObjectFromS3AsString(
+/**
+ * Get secretes from secrete S3 bucket (which has audit turned on)
+ * TODO: add a context to the function to reuse in other applications.
+ * @param type use 'auth_token' or 'credential'
+ */
+const getSecrete = async (type: 'auth_token' | 'credential') =>
+    await getObjectFromS3AsString(
         'cave-automation-secretes',
         `yang/tesla/${type}.json`,
     );
-};
+
+const putSecrete = async (secrete: string) =>
+    await putObjectToS3(
+        'cave-automation-secretes',
+        `yang/tesla/auth_token.json`,
+        secrete,
+    );
 
 const authTokenFromS3Task = tryCatch(
     () => getSecrete('auth_token'),
@@ -22,10 +32,11 @@ const credentialFromS3Task = tryCatch(
     err => err,
 );
 
-const fetchTask = (url: string, body: string, method: 'GET' | 'POST') => tryCatch(
+export const fetchTask = (url: string,  method: 'GET'|'POST', body?: string) => tryCatch(
     () => fetch(url, {
         method,
-        body,
+        headers: { 'Content-Type': 'application/json' },
+        ...{ body },
     }),
     err => err,
 );
@@ -39,22 +50,23 @@ const TeslaAuth = t.interface({
 }, 'TeslaAuthToken');
 type TeslaAuth = typeof TeslaAuth._A;
 
-interface TeslaAuthUnexpired {
-    readonly UnexpiredToken: symbol;
-}
-
 const hasTokenExpired = (token: TeslaAuth) => {
     const bufferTimeInSeconds = 300;
     const expiredAtTimestamp = token.created_at + token.expires_in - bufferTimeInSeconds;
     return Math.floor(Date.now() / 1000) < expiredAtTimestamp;
 };
 
+interface ITeslaAuthUnexpired {
+    readonly UnexpiredToken: symbol;
+}
+
 // validate if token will expire in 5 minutes
 export const TeslaAuthUnexpired = t.brand(
     TeslaAuth,
-    (n): n is t.Branded<TeslaAuth, TeslaAuthUnexpired> => hasTokenExpired(n),
+    (n): n is t.Branded<TeslaAuth, ITeslaAuthUnexpired> => hasTokenExpired(n),
     'UnexpiredToken',
 );
+type TeslaAuthUnexpired = typeof TeslaAuthUnexpired._A;
 
 const TeslaCredential = t.interface({
     email: t.string,
@@ -73,7 +85,10 @@ export const getStoredAuthTokenTask = () => {
         .chain(x => taskEither.fromEither(TeslaAuthUnexpired.decode(x)));
 };
 
-// TODO: use environment variable for url for future integration tests
+/**
+ * Authenticate with Tesla and get a new token
+ * TODO: use environment variable for url for future integration tests
+ */
 export const getNewAuthTokenTask = () => {
     const authBaseParams = {
         grant_type: 'password',
@@ -85,15 +100,40 @@ export const getNewAuthTokenTask = () => {
         .map(authParams => JSON.stringify(authParams))
         .chain(authParamString => fetchTask(
             'https://owner-api.teslamotors.com/oauth/token',
-            authParamString,
-            'POST'))
+            'POST',
+            authParamString))
+        .chain(x => tryCatch(() => x.json(), err => err))
         .chain(x => taskEither.fromEither(TeslaAuthUnexpired.decode(x)))
-        .chain(x => taskEither.fromTask(new Task(() => { // TODO: this is kind of hacky
-            void putObjectToS3( // unreliable fire and forget
-                'cave-automation-secretes',
-                `yang/tesla/auth_token.json`,
-                JSON.stringify(x),
-            );
+        .chain(x => taskEither.fromTask(new Task(async () => {
+            try { // TODO: this is kind of hacky
+                void await putSecrete(JSON.stringify(x));
+            } catch (e) {
+                const errMsg = {
+                    seo: ['FailedToSaveToS3', 'TeslaAuth', 'getNewAuthTokenTask'],
+                    fullError: JSON.stringify(e),
+                };
+                console.error(errMsg);
+            }
             return Promise.resolve(x);
         })));
+};
+
+/**
+ * Try to save the auth token to S3 but ignore any errors during the process
+ * @param authToken an unexpired Tesla auth token object
+ */
+export const saveAuthTokenTask = (authToken: TeslaAuthUnexpired) => {
+    const saveAuthToken = async () => {
+        try {
+            void await putSecrete(JSON.stringify(authToken));
+        } catch (e) {
+            const errMsg = {
+                seo: ['FailedToSaveToS3', 'TeslaAuth', 'getNewAuthTokenTask'],
+                fullError: JSON.stringify(e),
+            };
+            console.error(errMsg);
+        }
+        return Promise.resolve(authToken);
+    };
+    return taskEither.fromTask(new Task(saveAuthToken));
 };
