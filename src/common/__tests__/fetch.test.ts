@@ -1,85 +1,45 @@
-import * as t from 'io-ts';
-import { typedFetcher } from '../fetch';
+import { tryCatch } from 'fp-ts/lib/TaskEither';
+import { fetchTask } from '../fetch';
 
-jest.mock(
-    'node-fetch',
-    () =>
-        ({
-            default: () => ({
-                json: () => ({ foo: 'bar' }),
-                status: 200,
-            }),
-        } as any),
-);
+const mockJSON = jest.fn();
 
-describe('fetch', () => {
-    it('success with expect shape', async () => {
-        const type = t.type({ foo: t.string }, 'foo');
-        const res = await typedFetcher(type)('http://worldtimeapi.org/api/ip', 'GET');
-        expect(res).toMatchInlineSnapshot(`
-Object {
-  "response": Right {
-    "_tag": "Right",
-    "value": Object {
-      "foo": "bar",
-    },
-  },
-  "status": 200,
-}
-`);
+jest.mock('node-fetch', () => ({
+    default: () =>
+        Promise.resolve({
+            json: mockJSON,
+            status: 200,
+        }),
+}));
+
+// TODO: need more tests coverage
+describe('fetchTask', () => {
+    beforeEach(() => {
+        mockJSON.mockReset();
     });
 
-    it('success with unexpect shape', async () => {
-        const type = t.type({ notfoo: t.string }, 'notfoo');
-        const res = await typedFetcher(type)('http://worldtimeapi.org/api/ip', 'GET');
-        expect(res).toMatchInlineSnapshot(`
-Object {
-  "response": Left {
-    "_tag": "Left",
-    "value": Array [
-      Object {
-        "context": Array [
-          Object {
-            "actual": Object {
-              "foo": "bar",
-            },
-            "key": "",
-            "type": InterfaceType {
-              "_tag": "InterfaceType",
-              "encode": [Function],
-              "is": [Function],
-              "name": "notfoo",
-              "props": Object {
-                "notfoo": StringType {
-                  "_tag": "StringType",
-                  "encode": [Function],
-                  "is": [Function],
-                  "name": "string",
-                  "validate": [Function],
-                },
-              },
-              "validate": [Function],
-            },
-          },
-          Object {
-            "actual": undefined,
-            "key": "notfoo",
-            "type": StringType {
-              "_tag": "StringType",
-              "encode": [Function],
-              "is": [Function],
-              "name": "string",
-              "validate": [Function],
-            },
-          },
-        ],
-        "message": undefined,
-        "value": undefined,
-      },
-    ],
-  },
-  "status": 200,
-}
-`);
+    it('fetches results', async () => {
+        mockJSON.mockImplementation(() => Promise.resolve({ foo: 'bar' }));
+        const fetchEither = await fetchTask('http://example.com/api/ip', 'GET')
+            .chain(x => tryCatch(() => x.json(), err => err))
+            .run();
+        expect(fetchEither.value).toMatchInlineSnapshot(`
+                        Object {
+                          "foo": "bar",
+                        }
+                `);
+    });
+
+    it('return left when fetch json failed', async () => {
+        mockJSON.mockImplementation(() => Promise.reject('Mock failed scenario'));
+        const fetchEither = await fetchTask('http://example.com/api/ip', 'GET')
+            .chain(x => tryCatch(() => x.json(), err => err))
+            .run();
+        expect(fetchEither.isLeft).toBeTruthy();
+        expect(fetchEither).toMatchInlineSnapshot(`
+            Left {
+              "_tag": "Left",
+              "value": "Mock failed scenario",
+            }
+        `);
     });
 });

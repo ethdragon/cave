@@ -19,7 +19,7 @@ provider:
   runtime: nodejs8.10
   stackName: ${self:custom.stage}-${self:service}
   memorySize: 128
-  timeout: 6
+  timeout: 60
   deploymentBucket:
     name: cave-automation-deployment-bucket # manually created bucket
 

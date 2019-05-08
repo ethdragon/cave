@@ -32,7 +32,7 @@
                 "ignore-prefix": [
                     "Object.", "throw", "Throw", "validate",
                     "_", "stateful", "mutabl", "mutate", "truthy", "assign", "void",
-                    "test", "describe(", "it(", "it.", "beforeEach(", "expect", "jest.", "snapshot",
+                    "test", "describe(", "it(", "it.", "xit", "beforeEach(", "expect", "jest.", "snapshot",
                     "mock", "Mock", "Date.now = jest.fn().mockReturnValue", "console.", "suite"
                 ]
             }
