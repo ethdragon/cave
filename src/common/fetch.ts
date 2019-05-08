@@ -1,3 +1,4 @@
+import { tryCatch } from 'fp-ts/lib/TaskEither';
 import * as t from 'io-ts';
 import fetch from 'node-fetch';
 
@@ -12,4 +13,19 @@ export const typedFetcher = <A>(outType: t.Type<A>) =>
             status: res.status,
             response: outType.decode(await res.json()),
         };
+};
+
+export const fetchTask = (url: string,  method: 'GET'|'POST', body?: string, token?: string) => {
+    const authHeader = token ? { Authorization: token } : null;
+    return tryCatch(
+        () => fetch(url, {
+            method,
+            headers: {
+                ...authHeader,
+                'Content-Type': 'application/json',
+            },
+            ...{ body },
+        }),
+        err => err,
+    );
 };

@@ -1,7 +1,7 @@
 import { Task } from 'fp-ts/lib/Task';
 import { taskEither, tryCatch } from 'fp-ts/lib/TaskEither';
 import * as t from 'io-ts';
-import fetch from 'node-fetch';
+import { fetchTask } from '../common/';
 import { getObjectFromS3AsString, putObjectToS3 } from '../common/s3';
 
 /**
@@ -29,15 +29,6 @@ const authTokenFromS3Task = tryCatch(
 
 const credentialFromS3Task = tryCatch(
     () => getSecrete('credential'),
-    err => err,
-);
-
-export const fetchTask = (url: string,  method: 'GET'|'POST', body?: string) => tryCatch(
-    () => fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        ...{ body },
-    }),
     err => err,
 );
 
