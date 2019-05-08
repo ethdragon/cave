@@ -1,8 +1,8 @@
 import { Task } from 'fp-ts/lib/Task';
 import { taskEither, tryCatch } from 'fp-ts/lib/TaskEither';
-import * as t from 'io-ts';
 import { fetchTask } from '../common/';
 import { getObjectFromS3AsString, putObjectToS3 } from '../common/s3';
+import { TeslaAuthUnexpired, TeslaCredential } from '../io-types';
 
 /**
  * Get secretes from secrete S3 bucket (which has audit turned on)
@@ -31,38 +31,6 @@ const credentialFromS3Task = tryCatch(
     () => getSecrete('credential'),
     err => err,
 );
-
-const TeslaAuth = t.interface({
-    access_token: t.string,
-    token_type: t.literal('bearer'),
-    expires_in: t.number,
-    refresh_token: t.string,
-    created_at: t.number,
-}, 'TeslaAuthToken');
-type TeslaAuth = typeof TeslaAuth._A;
-
-const hasTokenExpired = (token: TeslaAuth) => {
-    const bufferTimeInSeconds = 300;
-    const expiredAtTimestamp = token.created_at + token.expires_in - bufferTimeInSeconds;
-    return Math.floor(Date.now() / 1000) < expiredAtTimestamp;
-};
-
-interface ITeslaAuthUnexpired {
-    readonly UnexpiredToken: symbol;
-}
-
-// validate if token will expire in 5 minutes
-export const TeslaAuthUnexpired = t.brand(
-    TeslaAuth,
-    (n): n is t.Branded<TeslaAuth, ITeslaAuthUnexpired> => hasTokenExpired(n),
-    'UnexpiredToken',
-);
-type TeslaAuthUnexpired = typeof TeslaAuthUnexpired._A;
-
-const TeslaCredential = t.interface({
-    email: t.string,
-    password: t.string,
-});
 
 const getStoredCredentialTask = () => {
     return credentialFromS3Task
