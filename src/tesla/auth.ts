@@ -62,19 +62,7 @@ export const getNewAuthTokenTask = () => {
             'POST',
             authParamString))
         .chain(x => tryCatch(() => x.json(), err => err))
-        .chain(x => taskEither.fromEither(TeslaAuthUnexpired.decode(x)))
-        .chain(x => taskEither.fromTask(new Task(async () => {
-            try { // TODO: this is kind of hacky
-                void await putSecrete(JSON.stringify(x));
-            } catch (e) {
-                const errMsg = {
-                    seo: ['FailedToSaveToS3', 'TeslaAuth', 'getNewAuthTokenTask'],
-                    fullError: JSON.stringify(e),
-                };
-                console.error(errMsg);
-            }
-            return Promise.resolve(x);
-        })));
+        .chain(x => taskEither.fromEither(TeslaAuthUnexpired.decode(x)));
 };
 
 /**
