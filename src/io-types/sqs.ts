@@ -5,10 +5,10 @@ export const NumberFromString = new t.Type<number, string, unknown>(
     'NumberFromString',
     t.number.is,
     (u, c) =>
-      t.string.validate(u, c).chain(s => {
-        const n = +s;
-        return isNaN(n) ? t.failure(u, c, 'cannot parse to a number') : t.success(n);
-      }),
+        t.string.validate(u, c).chain(s => {
+            const n = +s;
+            return isNaN(n) ? t.failure(u, c, 'cannot parse to a number') : t.success(n);
+        }),
     String,
   );
 
